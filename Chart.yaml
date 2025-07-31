@@ -1,0 +1,14 @@
+apiVersion: v2
+name: opentelemetry-stack
+description: Deploys an opentelemetry stack for use with rancher-monitoring & SUSE Observability
+type: application
+
+version: 0.1.0
+
+# matches the opentelemetry collector version used by default with opentelemetry-operator
+appVersion: "0.129.1"
+
+# dependencies:
+#   - name : opentelemetry-operator
+#     version : "0.92.1"
+#     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts/"

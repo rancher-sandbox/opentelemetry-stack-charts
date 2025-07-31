@@ -1,0 +1,73 @@
+{{- if .Values.metricsCollector.enabled -}}
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: rancher-{{ .Release.Name }}-metrics-collector
+  namespace : {{ .Release.Namespace }}
+spec:
+  mode: statefulset
+  serviceAccount : rancher-{{ .Release.Name }}-metrics-collector
+  replicas : {{ .Values.metricsCollector.replicas }}
+  image : {{ .Values.metricsCollector.image }}
+  {{- if .Values.metricsCollector.serviceDiscovery.enabled}}
+  targetAllocator:
+    image : {{ .Values.metricsCollector.serviceDiscovery.image }}
+    enabled : true
+    serviceAccount : rancher-{{ .Release.Name }}-metrics-collector
+    prometheusCR:
+      enabled: true
+      # TODO : pass these values in
+      serviceMonitorSelector: {}
+      podMonitorSelector: {}
+  {{- end }}
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+      {{- if .Values.metricsCollector.serviceDiscovery.enabled }}
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: 'metrics-collector'
+            scrape_interval: 10s
+            static_configs:
+            - targets: [ '0.0.0.0:8888' ]
+      {{- end }}
+    processors:
+      # TODO: configure
+      batch:
+        send_batch_max_size: 20000
+        timeout: 15s
+      # TODO: configure
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 15
+    exporters:
+    {{- if .Values.metricsCollector.exporters.prometheus.enabled }}
+      otlphttp/prom:
+        endpoint: {{ .Values.metricsCollector.exporters.prometheus.endpoint }}
+    {{- end }}
+      debug: {}
+    service:
+      telemetry:
+        logs:
+          level : {{ .Values.metricsCollector.logLevel }}
+      pipelines:
+        metrics:
+          receivers: 
+            - otlp
+{{- if .Values.metricsCollector.serviceDiscovery.enabled }}
+            - prometheus
+{{- end }}
+          processors:
+            - batch
+            - memory_limiter
+          exporters :
+            - debug
+{{- if .Values.metricsCollector.exporters.prometheus.enabled }}
+            - otlphttp/prom
+{{- end }}
+{{- end -}}

@@ -30,3 +30,12 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+
+# Created by https://www.gitignore.io/api/helm,macos,jetbrains+all
+# Edit at https://www.gitignore.io/?templates=helm,macos,jetbrains+all
+
+### Helm ###
+# Chart dependencies
+**/charts/*.tgz
+bin/

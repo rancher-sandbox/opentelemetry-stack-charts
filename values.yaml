@@ -1,0 +1,51 @@
+# Default values for opentelemetry-stack.
+
+# metricsCollector configures the opentelemetry CR responsible
+# for collecting arbitrary metrics
+metricsCollector:
+  image : ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.129.1
+  # one of DEBUG,INFO,WARN,ERROR
+  logLevel : DEBUG
+  enabled : true
+  replicas : 3
+  # serviceDiscovery configures the underlying collection of exposed metrics in the cluster
+  serviceDiscovery:
+    image : ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:0.129.1
+    enabled : true
+    serviceMonitorSelector : {}
+    podMonitorSelector :  {}
+
+  processors:
+    # TODO
+    batch:
+      enabled: true
+    memory_limiter:
+      enabled: true
+    additionalProcessors : ""
+
+  exporters:
+    prometheus:
+      enabled : true
+      # remote-write endpoint, defaults to the rancher-monitoring stack
+      endpoint : http://rancher-monitoring-prometheus.cattle-monitoring-system.svc.cluster.local:9090/api/v1/otlp
+      
+    suseObservability:
+      enabled : false
+      # must provide apiKey
+      apiKey : ""
+    
+    # extraExporters defines a set of additional exporters to define with this collector stack
+    additionalExporters :  ""
+  
+
+  extensions:
+    pprof:
+      enabled: false
+    healthcheck:
+      enabled : true
+    additonalExtensions: ""
+  
+
+logsCollector:
+  enabled : false
+
